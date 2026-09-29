@@ -1,0 +1,13 @@
+# 运行产物：可能含本机路径、账号 ID，永不提交
+*.log
+*.lnk
+*.bak
+*.bak-*/
+claude-code-sessions*/
+*.jsonl
+
+# 依赖与系统文件
+node_modules/
+.DS_Store
+Thumbs.db
+.claude/settings.local.json
