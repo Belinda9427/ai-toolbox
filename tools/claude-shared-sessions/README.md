@@ -1,5 +1,36 @@
 # claude-shared-sessions
 
+> [!WARNING]
+> **暂停使用（2026-09-30）：本工具有已知缺陷，会导致新建的会话在重启客户端后从侧栏消失。请不要安装；已经装过的请按下方「已安装用户：立即撤销」操作。**
+>
+> **原因：** 本工具把各账号的会话目录换成 junction（目录快捷方式）。Claude 桌面版能读 junction，所以旧会话看起来都在；但它在写入会话登记前有安全检查，发现目录是链接就拒绝写入。客户端日志 `%LOCALAPPDATA%\Claude\Logs\main.log` 里会反复出现：
+>
+> ```
+> Failed to save session local_...: Refusing non-directory at private dir path (symlink/file plant)
+> ```
+>
+> 结果是：接入共享之后新建的会话、改过的标题只存在内存里，客户端一重启就从侧栏消失。对话内容本身不会丢，仍在 `~\.claude\projects\` 下。
+>
+> 在找到不依赖链接的方案之前，本工具暂停使用。
+
+## 已安装用户：立即撤销
+
+1. 删除桌面快捷方式「Claude 共享会话」，以后不要再用它打开 Claude（每次运行它都会把链接重新建回去）
+2. 在 Claude 桌面版**之外**的终端（例如 Windows Terminal）运行撤销命令，然后从托盘图标完全退出 Claude：
+   ```powershell
+   pwsh -File "$env:LOCALAPPDATA\claude-shared-sessions\share-claude-sessions.ps1" -Unlink -WaitMinutes 10
+   ```
+   每个账号目录会恢复成真实目录，并保留完整的会话列表。
+3. 验证：重新打开 Claude、新建一个会话，然后运行下面的命令。如果没有输出，说明写入已经恢复正常：
+   ```powershell
+   Select-String "$env:LOCALAPPDATA\Claude\Logs\main.log" -Pattern 'symlink/file plant' | Select-Object -Last 3
+   ```
+4. 找回接入共享期间丢失的会话：它们的对话记录还在 `~\.claude\projects\<项目>\<会话ID>.jsonl`，在对应项目目录下运行 `claude --resume <会话ID>` 就能继续
+
+---
+
+以下是原说明，仅供参考，**请勿按此安装**。
+
 **Claude 桌面版换了账号，左侧栏的历史会话全不见了？** 这个工具让你所有的 Claude 账号 / 组织共用同一份侧栏会话列表：不管登录哪个账号，都能看到、继续所有项目的会话。
 
 - 会话没丢：对话内容一直在本机，只是桌面版按账号分开登记，换号后看不到
@@ -27,6 +58,8 @@
 以后都用这个快捷方式打开 Claude。换了新账号：首次登录后退出一次，再用快捷方式打开，新账号就接进来了。
 
 ## 给 AI Agent 的执行步骤
+
+> ⛔ **停止：本工具已暂停使用，不要执行以下安装步骤。** 请把本文件顶部的「暂停使用」说明转告用户。用户已经装过的，改按「已安装用户：立即撤销」处理。
 
 > 你是被用户叫来安装这个工具的 agent。按顺序执行，每步检查通过再往下。
 > 注意：如果你本身运行在 Claude 桌面版里，用户退出客户端时你也会被关掉——所以合并这一步必须交给用户双击快捷方式完成，不要自己去关客户端。
